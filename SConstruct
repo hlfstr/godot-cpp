@@ -28,7 +28,7 @@ if target_platform == 'linux':
     if ARGUMENTS.get('use_llvm', 'no') == 'yes':
         env['CXX'] = 'clang++'
 
-    env.Append(CCFLAGS = [ '-fPIC', '-g', '-O3', '-std=c++14', '-Wwrite-strings' ])
+    env.Append(CCFLAGS = [ '-fPIC', '-g', '-Og', '-std=c++14', '-Wwrite-strings' ])
     env.Append(LINKFLAGS = [ '-Wl,-R,\'$$ORIGIN\'' ])
 
     if target_arch == '32':
