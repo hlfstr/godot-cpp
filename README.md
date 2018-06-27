@@ -2,124 +2,102 @@
 C++ bindings for the Godot script API
 
 # Creating a GDNative library (Linux)
-Create a directory named `SimpleLibrary` with subdirectories `lib, src`
 
-Getting latest `godot-cpp` and `godot_headers`
+Use git to downlaod the latest `godot-cpp` and `godot_headers`.
 ```
-$ git clone https://github.com/GodotNativeTools/godot-cpp
-$ git clone https://github.com/GodotNativeTools/godot_headers
+$ git clone --recurse-submodules https://github.com/markedhero/godot-cpp
 ```
-right now our directory structure should look like this:
+Right now our directory structure should look like this:
 ```
-godot-cpp
-godot_headers
-SimpleLibrary
-├── lib/
+godot-cpp/
+├── godot_headers/
+├── include/
+├── jni/
 └── src/
 ```
 
-Now to generate cpp bindings
+It is highly recommended that you use Clang as the compiler, especially when developing for Android.  Clang will be assumed for the rest of these instructions.
+
+Now to generate the cpp bindings, enter the godot-cpp directory.
 ```
 $ cd godot-cpp
-$ scons godotbinpath="../godot_fork/bin/godot_binary" p=linux
-$ cd ..
+```
+Generate the godot_api.json file for use in generating the bindings
+```
+$ /path/to/godot_binary --gdnative-generate-json-api godot_api.json
+```
+Complete the build of the godot-cpp bindings
+```
+$ scons generate_bindings=yes platform=linux use_llvm=yes -j 6
 ```
 resulting libraries will be placed under `bin/` and the generated headers will be placed under `include/*`
+
+Alternatively, you can specify the Godot Engine path during the build
+```
+$ scons godotbinpath="/path/to/godot_binary" generate_bindings=yes platform=linux use_llvm=yes
+```
 
 **Note:**
 > `regenerate_bindings=yes` is used to force regenerating C++ bindings (`godot_api.json` - Godot API)
 
-> Include `use_llvm=yes` for using clang++
+> You may need to specify `headers=/path/to/godot_headers` if you have downloaded the godot_headers to a different directory
 
-> You may need to specify `headers=../godot_headers` if you have compilation issues related to missing include files
-
-And our directory structure will be
+Now our directory structure will be
 ```
-godot-cpp
-└── bin/libgodot-cpp.a
-godot_headers
-SimpleLibrary
-├── lib/
-└── src/
+godot-cpp/
+├── godot_headers/
+├── include/
+├── jni/
+├── src/
+└── bin/libgodot-cpp.linux.64.a
 ```
 
-# Creating simple class
+# Creating a GDNative library (Android)
 
-Create `init.cpp` under `SimpleLibrary/src/` and add the following code
-```cpp
-#include <core/Godot.hpp>
-#include <Reference.hpp>
+It is assumed that you have the latest Android NDK installed and available in your path.
+You should also be familiar with building and using the Android NDK on your system.
+You must first follow the build instructions for Linux above
 
-using namespace godot;
+Included in this fork is the "jni/" directory, which contains an Android.mk file to build for Android.
+You must first be in the godot-cpp folder as before.
 
-class SimpleClass : public GodotScript<Reference> {
-        GODOT_CLASS(SimpleClass);
-public:
-        SimpleClass() { }
-
-        void test_void_method() {
-                Godot::print("This is test");
-        }
-
-        Variant method(Variant arg) {
-            Variant ret;
-            ret = arg;
-
-            return ret;
-        }
-
-        static void _register_methods() {
-           register_method("method", &SimpleClass::method);
-	   
-	   /**
-	    * How to register exports like gdscript
-	    * export var _name = "SimpleClass"
-	    **/
-	   register_property((char *)"base/name", &SimpleClass::_name, String("SimpleClass"));
-
-           /** For registering signal **/
-           // register_signal<SimpleClass>("signal_name");
-           // register_signal<SimpleClass>("signal_name", "string_argument", GODOT_VARIANT_TYPE_STRING)
-        }
-	
-	String _name;
-};
-
-/** GDNative Initialize **/
-extern "C" void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *o)
-{
-    godot::Godot::gdnative_init(o);
-}
-
-/** GDNative Terminate **/
-extern "C" void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *o)
-{
-    godot::Godot::gdnative_terminate(o);
-}
-
-/** NativeScript Initialize **/
-extern "C" void GDN_EXPORT godot_nativescript_init(void *handle)
-{
-    godot::Godot::nativescript_init(handle);
-
-    godot::register_class<SimpleClass>();
-}
+Initiate the Build using the ndk-build tool
+```
+$ ndk-build -j 6
 ```
 
-# Compiling
+As the project is being compiled, output will be placed in the "obj/" folder.  The final build will be placed in "lib/"
+The current directory structure should be
 ```
-$ cd SimpleLibrary
-$ clang -fPIC -o src/init.os -c src/init.cpp -g -O3 -std=c++14 -I../godot-cpp/include -Igodot_headers
-$ clang -o lib/libtest.so -shared src/init.os -L../godot-cpp/lib -lgodot-cpp
+godot-cpp/
+├── godot_headers/
+├── include/
+├── jni/
+├── libs/
+│   ├── arm64-v8a/
+│   │   ├── libandroid_gdnative.so
+│   │   └── libc++_shared.so
+│   ├── armeabi-v7a/
+│   │   ├── libandroid_gdnative.so
+│   │   └── libc++_shared.so
+│   ├── x86/
+│   │   ├── libandroid_gdnative.so
+│   │   └── libc++_shared.so
+│   └── x86_64/
+│       ├── libandroid_gdnative.so
+│       └── libc++_shared.so
+├── obj/
+├── src/
+└── bin/libgodot-cpp.linux.64.a
 ```
-This creates the file `libtest.so` in your `SimpleLibrary/lib` directory. For windows you need to find out what compiler flags need to be used.
 
-# Creating `.gdns` file
-follow [godot_header/README.md](https://github.com/GodotNativeTools/godot_headers/blob/master/README.md#how-do-i-use-native-scripts-from-the-editor) to create the `.gdns` 
+The library has been compiled as a Shared Library to include on the Android Platform.  Both the 'libandroi_gdnative.so' and 'libc++_shared.so' are required for your projects.
 
-# Implementing with gdscript
-```gdscript
-var simpleclass = load("res://simpleclass.gdns").new();
-simpleclass.method("Test argument");
-```
+# Conclusion
+The compilation has completed.  From here you can begin developing GDNative for the Linux Platform as well as the Android Platform.
 
+### See Also
+
+[Using GDNative](http://docs.godotengine.org/pt_BR/latest/tutorials/plugins/gdnative/gdnative-cpp-example.html#using-your-gdnative-module)
+
+[Examples](https://github.com/markedhero/GDNative-demos)
