@@ -1,7 +1,8 @@
 #!python
 
 import os, subprocess, platform
-
+from subprocess import call
+from sys import exit
 
 def add_sources(sources, dir, extension):
   for f in os.listdir(dir):
@@ -80,6 +81,10 @@ elif target_platform == 'osx':
     env.Append(CCFLAGS = [ '-g','-O3', '-std=c++14', '-arch', 'x86_64' ])
     env.Append(LINKFLAGS = [ '-arch', 'x86_64', '-framework', 'Cocoa', '-Wl,-undefined,dynamic_lookup' ])
 
+elif target_platform == 'android':
+  # Super hacky, but it allows us to place the output to the bin directory for tidiness
+  call(["ndk-build", "-j4", "NDK_LIBS_OUT=bin", "NDK_OUT=bin/obj"])
+  exit()
 
 env.Append(CPPPATH=['.', godot_headers, 'include', 'include/core'])
 
@@ -93,7 +98,7 @@ else:
 
 if ARGUMENTS.get('generate_bindings', 'no') == 'yes':
     # actually create the bindings here
-    
+
     import binding_generator
 
     binding_generator.generate_bindings(json_api_file)
