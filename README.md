@@ -98,6 +98,6 @@ The compilation has completed.  From here you can begin developing GDNative for 
 
 ### See Also
 
-[Using GDNative](http://docs.godotengine.org/pt_BR/latest/tutorials/plugins/gdnative/gdnative-cpp-example.html#using-your-gdnative-module)
+[Using GDNative](http://docs.godotengine.org/en/latest/tutorials/plugins/gdnative/gdnative-cpp-example.html#using-your-gdnative-module)
 
 [Examples](https://github.com/markedhero/GDNative-demos)
