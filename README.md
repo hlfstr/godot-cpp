@@ -38,7 +38,7 @@ $ scons godotbinpath="/path/to/godot_binary" generate_bindings=yes platform=linu
 ```
 
 **Note:**
-> `regenerate_bindings=yes` is used to force regenerating C++ bindings (`godot_api.json` - Godot API)
+> `generate_bindings=yes` is used to force regenerating C++ bindings (`godot_api.json` - Godot API)
 
 > You may need to specify `headers=/path/to/godot_headers` if you have downloaded the godot_headers to a different directory
 
