@@ -8,6 +8,7 @@ namespace godot {
 class NodePath;
 class Variant;
 class PoolByteArray;
+class PoolIntArray;
 class PoolRealArray;
 class PoolStringArray;
 class String;
@@ -67,8 +68,6 @@ public:
 	CharString utf8() const;
 	CharString ascii(bool p_extended = false) const;
 
-	int64_t find(String p_what) const;
-	int64_t find_from(String p_what, int64_t p_from) const;
 	bool begins_with(String &s) const;
 	bool begins_with_char_array(const char *p_char_array) const;
 	PoolStringArray bigrams() const;
@@ -120,6 +119,7 @@ public:
 	String sha256_text() const;
 	float similarity(String text) const;
 	PoolStringArray split(String divisor, bool allow_empty = true) const;
+	PoolIntArray split_ints(String divisor, bool allow_empty = true) const;
 	PoolRealArray split_floats(String divisor, bool allow_empty = true) const;
 	String strip_edges(bool left = true, bool right = true) const;
 	String substr(int from, int len) const;
@@ -129,12 +129,19 @@ public:
 	String to_upper() const;
 	String xml_escape() const;
 	String xml_unescape() const;
-
+	signed char casecmp_to(String p_str) const;
+	signed char nocasecmp_to(String p_str) const;
+	signed char naturalnocasecmp_to(String p_str) const;
+	String dedent() const;
+	PoolStringArray rsplit(const String &divisor, const bool allow_empty = true, const int maxsplit = 0) const;
+	String rstrip(const String &chars) const;
+	String trim_prefix(const String &prefix) const;
+	String trim_suffix(const String &suffix) const;
 };
 
 String operator+(const char *a, const String &b);
 String operator+(const wchar_t *a, const String &b);
 
-}
+} // namespace godot
 
 #endif // STRING_H

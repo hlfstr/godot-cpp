@@ -1,10 +1,10 @@
 #include "String.hpp"
 
 #include "Array.hpp"
+#include "GodotGlobal.hpp"
 #include "NodePath.hpp"
 #include "PoolArrays.hpp"
 #include "Variant.hpp"
-#include "GodotGlobal.hpp"
 
 #include <gdnative/string.h>
 
@@ -99,7 +99,7 @@ String::~String() {
 }
 
 wchar_t &String::operator[](const int idx) {
-	return *godot::api->godot_string_operator_index(&_godot_string, idx);
+	return *const_cast<wchar_t *>(godot::api->godot_string_operator_index(&_godot_string, idx));
 }
 
 wchar_t String::operator[](const int idx) const {
@@ -169,7 +169,7 @@ char *String::alloc_c_string() const {
 
 	int length = godot::api->godot_char_string_length(&contents);
 
-	char *result = (char *) godot::api->godot_alloc(length + 1);
+	char *result = (char *)godot::api->godot_alloc(length + 1);
 
 	if (result) {
 		memcpy(result, godot::api->godot_char_string_get_data(&contents), length + 1);
@@ -219,7 +219,7 @@ bool String::begins_with_char_array(const char *p_char_array) const {
 PoolStringArray String::bigrams() const {
 	godot_array arr = godot::api->godot_string_bigrams(&_godot_string);
 
-	return *(PoolStringArray *)&arr;
+	return *(Array *)&arr;
 }
 
 String String::c_escape() const {
@@ -256,15 +256,15 @@ void String::erase(int position, int chars) {
 }
 
 int String::find(String p_what, int p_from) const {
-	return godot::api->godot_string_find(&_godot_string, p_what._godot_string);
+	return godot::api->godot_string_find_from(&_godot_string, p_what._godot_string, p_from);
 }
 
-int String::find_last(String what) const {
-	return godot::api->godot_string_find_last(&_godot_string, what._godot_string);
+int String::find_last(String p_what) const {
+	return godot::api->godot_string_find_last(&_godot_string, p_what._godot_string);
 }
 
-int String::findn(String what, int from) const {
-	return godot::api->godot_string_findn(&_godot_string, what._godot_string);
+int String::findn(String p_what, int p_from) const {
+	return godot::api->godot_string_findn_from(&_godot_string, p_what._godot_string, p_from);
 }
 
 String String::format(Variant values) const {
@@ -443,13 +443,12 @@ String String::replacen(String what, String forwhat) const {
 	return new_string;
 }
 
-int String::rfind(String what, int from) const {
-	return godot::api->godot_string_rfind(&_godot_string, what._godot_string);
+int String::rfind(String p_what, int p_from) const {
+	return godot::api->godot_string_rfind_from(&_godot_string, p_what._godot_string, p_from);
 }
 
-int String::rfindn(String what, int from) const {
-	// From -1
-	return godot::api->godot_string_rfindn(&_godot_string, what._godot_string);
+int String::rfindn(String p_what, int p_from) const {
+	return godot::api->godot_string_rfindn_from(&_godot_string, p_what._godot_string, p_from);
 }
 
 String String::right(int position) const {
@@ -479,13 +478,19 @@ float String::similarity(String text) const {
 PoolStringArray String::split(String divisor, bool allow_empty) const {
 	godot_array arr = godot::api->godot_string_split(&_godot_string, &divisor._godot_string);
 
-	return *(PoolStringArray *)&arr;
+	return *(Array *)&arr;
+}
+
+PoolIntArray String::split_ints(String divisor, bool allow_empty) const {
+	godot_array arr = godot::api->godot_string_split_floats(&_godot_string, &divisor._godot_string);
+
+	return *(Array *)&arr;
 }
 
 PoolRealArray String::split_floats(String divisor, bool allow_empty) const {
 	godot_array arr = godot::api->godot_string_split_floats(&_godot_string, &divisor._godot_string);
 
-	return *(PoolRealArray *)&arr;
+	return *(Array *)&arr;
 }
 
 String String::strip_edges(bool left, bool right) const {
@@ -537,4 +542,47 @@ String String::xml_unescape() const {
 
 	return new_string;
 }
+
+signed char String::casecmp_to(String p_str) const {
+	return godot::api->godot_string_casecmp_to(&_godot_string, &p_str._godot_string);
 }
+
+signed char String::nocasecmp_to(String p_str) const {
+	return godot::api->godot_string_nocasecmp_to(&_godot_string, &p_str._godot_string);
+}
+
+signed char String::naturalnocasecmp_to(String p_str) const {
+	return godot::api->godot_string_naturalnocasecmp_to(&_godot_string, &p_str._godot_string);
+}
+
+String String::dedent() const {
+	String new_string;
+	new_string._godot_string = godot::core_1_1_api->godot_string_dedent(&_godot_string);
+	return new_string;
+}
+
+PoolStringArray String::rsplit(const String &divisor, const bool allow_empty,
+		const int maxsplit) const {
+	godot_pool_string_array arr = godot::core_1_1_api->godot_string_rsplit(&_godot_string, &divisor._godot_string, allow_empty, maxsplit);
+	return *(PoolStringArray *)&arr;
+}
+
+String String::rstrip(const String &chars) const {
+	String new_string;
+	new_string._godot_string = godot::core_1_1_api->godot_string_rstrip(&_godot_string, &chars._godot_string);
+	return new_string;
+}
+
+String String::trim_prefix(const String &prefix) const {
+	String new_string;
+	new_string._godot_string = godot::core_1_1_api->godot_string_trim_prefix(&_godot_string, &prefix._godot_string);
+	return new_string;
+}
+
+String String::trim_suffix(const String &suffix) const {
+	String new_string;
+	new_string._godot_string = godot::core_1_1_api->godot_string_trim_suffix(&_godot_string, &suffix._godot_string);
+	return new_string;
+}
+
+} // namespace godot

@@ -7,16 +7,15 @@
 
 namespace godot {
 
-
-class NodePath
-{
+class NodePath {
 	godot_node_path _node_path;
+
 public:
 	NodePath();
 
 	NodePath(const NodePath &other);
 
-	NodePath(const String& from);
+	NodePath(const String &from);
 
 	NodePath(const char *contents);
 
@@ -32,17 +31,19 @@ public:
 
 	bool is_empty() const;
 
+	NodePath get_as_property_path() const;
+
+	String get_concatenated_subnames() const;
+
 	operator String() const;
 
-	void operator =(const NodePath& other);
+	void operator=(const NodePath &other);
 
-	bool operator ==(const NodePath& other);
+	bool operator==(const NodePath &other);
 
 	~NodePath();
 };
 
-
-
-}
+} // namespace godot
 
 #endif // NODEPATH_H
