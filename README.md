@@ -211,11 +211,11 @@ Once the `ndk-build` command is added to your `PATH`, you are able to build the 
 **NOTE: You MUST build the `godot-cpp` library first for your current platform with the `generate_bindings` option in order to build for Android!**
 
 ```sh
-$ scons platform=android use_llvm=yes -j4 target=release android_arch=arm64v8
+$ scons platform=android use_llvm=yes -j4 target=debug android_arch=arm64v8
 ```
 > Include `use_llvm=yes` for using clang++ (recommended)
 
-> Include `target=runtime` to build a runtime build
+> Include `target=release` to build a release build
 
 > Change `android_arch=arm64v8` to your processor type for Android (currently, arm64v8 or armv7)
 
