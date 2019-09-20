@@ -198,3 +198,29 @@ var simpleclass = load("res://simpleclass.gdns").new();
 simpleclass.method("Test argument");
 ```
 
+## Building for Android
+This fork of the godot-cpp library includes support for building Android applications using GDNative.  This is still a "work in progress" for getting the best method, however is fully functional in its current state.  To build for Android, ensure that you have the Android NDK installed and availble in your path.  See the official documentation for the Android NDK for instructions.  You will also need to ensure you have the `ANDROID_NDK_HOME` environment variable set in order to use this functionality.
+
+```sh
+$ export ANDROID_NDK_HOME=/path/to/ndk_bundle
+$ export PATH=$PATH:$ANDROID_NDK_HOME
+```
+
+Once the `ndk-build` command is added to your `PATH`, you are able to build the godot-cpp headers for Android.
+
+**NOTE: You MUST build the `godot-cpp` library first for your current platform with the `generate_bindings` option in order to build for Android!**
+
+```sh
+$ scons platform=android use_llvm=yes -j4 target=release android_arch=arm64v8
+```
+> Include `use_llvm=yes` for using clang++ (recommended)
+
+> Include `target=runtime` to build a runtime build
+
+> Change `android_arch=arm64v8` to your processor type for Android (currently, arm64v8 or armv7)
+
+> The resulting library will be created in a subfolder of `godot-cpp/bin/` depending on the arch used.
+
+This will result in 2 files, `libgodot.so` and `libc++_shared.so`.  Currently the build system will only allow for a single library generated, either the `release` or `debug` version of the library.  To "change" between the 2, you must issue a rebuild of the target you wish to use.
+
+You can now include the Shared library built into your application!  For an easy to use build environment for GDNative, check out the godot-init-project repository!

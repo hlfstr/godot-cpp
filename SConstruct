@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-import os
-import sys
+import os, subprocess, sys, platform
+from subprocess import call
+from sys import exit
 
 
 def add_sources(sources, dir, extension):
@@ -29,7 +30,7 @@ opts.Add(EnumVariable(
     'platform',
     'Target platform',
     host_platform,
-    allowed_values=('linux', 'osx', 'windows'),
+    allowed_values=('linux', 'osx', 'windows', 'android'),
     ignorecase=2
 ))
 opts.Add(EnumVariable(
@@ -72,6 +73,13 @@ opts.Add(BoolVariable(
     'generate_bindings',
     'Generate GDNative API bindings',
     False
+))
+opts.Add(EnumVariable(
+    'android_arch',
+    'android architecture',
+    'armv7',
+    allowed_values=('armv7', 'arm64v8'),
+    ignorecase=2
 ))
 
 env = Environment()
@@ -173,6 +181,42 @@ elif env['platform'] == 'windows':
             '-static-libgcc',
             '-static-libstdc++',
         ])
+
+elif env['platform'] == 'android':
+    if host_platform == 'linux' or host_platform == 'osx':
+        if "ANDROID_NDK_HOME" not in os.environ:
+            raise ValueError(
+                'ANDROID_NDK_HOME is not set!'
+            )
+        # Get num of jobs passed
+        num_cpu = "-j"+str(GetOption('num_jobs'))
+        if env['android_arch'] ==  'armv7':
+            os.environ['SC_ARCH'] = 'armeabi-v7a'
+        elif env['android_arch'] == 'arm64v8':
+            os.environ['SC_ARCH'] = 'arm64-v8a'
+
+        # Use llvm, not sure if working
+        if env['use_llvm']:
+            os.environ['SC_CLANG'] = "true"
+        else:
+            os.environ['SC_CLANG'] = "false"
+
+        # Debug or release flags
+        if env['target'] == 'debug':
+            os.environ['SC_TARGET'] = "debug"
+        elif env['target'] == 'release':
+            os.environ['SC_TARGET'] = "release"
+        else:
+            raise ValueError(
+                'Unable to determine target.  Use'
+                'target={debug,release}'
+            )
+        # NDK Command
+        command = ["ndk-build", num_cpu, "NDK_LIBS_OUT=bin", "NDK_OUT=bin/obj"]
+        # Call with env set
+        call(command)
+        # Exit script, all done
+        exit()
 
 env.Append(CPPPATH=[
     '.',
