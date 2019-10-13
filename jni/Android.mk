@@ -8,9 +8,10 @@ else
 	NDK_TOOLCHAIN_VERSION := gcc
 endif
 LOCAL_MODULE := libgodot
+APP_MODULES := godot
 LOCAL_CPPFLAGS := -std=c++17 -fPIC
 LOCAL_CPP_FEATURES := rtti exceptions
-LOCAL_LDLIBS := -llog
+#LOCAL_LDLIBS := -llog
 
 ifeq ($(SC_TARGET),debug)
 	LOCAL_CPPFLAGS := $(LOCAL_CPPFLAGS) -g3 -Og
@@ -26,4 +27,4 @@ $(PWD)/include \
 $(PWD)/include/gen \
 $(PWD)/include/core
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)

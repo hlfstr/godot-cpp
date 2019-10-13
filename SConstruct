@@ -1,15 +1,25 @@
 #!/usr/bin/env python
 
 import os, subprocess, sys, platform
-from subprocess import call
 from sys import exit
-
 
 def add_sources(sources, dir, extension):
     for f in os.listdir(dir):
         if f.endswith('.' + extension):
             sources.append(dir + '/' + f)
 
+def generate_bindings():
+    print("Generating Bindings ...")
+    # Generate bindings?
+    json_api_file = ''
+
+    if 'custom_api_file' in env:
+        json_api_file = env['custom_api_file']
+    else:
+        json_api_file = os.path.join(os.getcwd(), 'godot_headers', 'api.json')
+
+    import binding_generator
+    binding_generator.generate_bindings(json_api_file)
 
 # Try to detect the host platform automatically.
 # This is used if no `platform` argument is passed
@@ -188,6 +198,13 @@ elif env['platform'] == 'android':
             raise ValueError(
                 'ANDROID_NDK_HOME is not set!'
             )
+        else:
+            os.environ['PATH'] = os.environ['ANDROID_NDK_HOME'] + ":" + os.environ['PATH']
+        
+        # Generate Bindings
+        if env['generate_bindings']:
+            generate_bindings()
+        
         # Get num of jobs passed
         num_cpu = "-j"+str(GetOption('num_jobs'))
         if env['android_arch'] ==  'armv7':
@@ -214,7 +231,12 @@ elif env['platform'] == 'android':
         # NDK Command
         command = ["ndk-build", num_cpu, "NDK_LIBS_OUT=bin", "NDK_OUT=bin/obj"]
         # Call with env set
-        call(command)
+        retval = subprocess.call(command)
+        if retval == 0:
+            print("libgodot.a -> bin/" + os.environ['SC_ARCH'] + "/libgodot." + env['target'] + ".a")
+            if not os.path.exists("bin/" + os.environ['SC_ARCH']):
+                os.makedirs("bin/" + os.environ['SC_ARCH'])
+            os.rename("bin/obj/local/" + os.environ['SC_ARCH'] + "/libgodot.a", "bin/" + os.environ['SC_ARCH'] + "/libgodot." + env['target'] + ".a")
         # Exit script, all done
         exit()
 
@@ -226,19 +248,9 @@ env.Append(CPPPATH=[
     'include/core',
 ])
 
-# Generate bindings?
-json_api_file = ''
-
-if 'custom_api_file' in env:
-    json_api_file = env['custom_api_file']
-else:
-    json_api_file = os.path.join(os.getcwd(), 'godot_headers', 'api.json')
-
 if env['generate_bindings']:
     # Actually create the bindings here
-    import binding_generator
-
-    binding_generator.generate_bindings(json_api_file)
+    generate_bindings()
 
 # Sources to compile
 sources = []
